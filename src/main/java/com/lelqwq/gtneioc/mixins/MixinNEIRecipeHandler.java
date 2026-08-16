@@ -21,6 +21,7 @@ import com.lelqwq.gtneioc.TierState;
 
 import codechicken.nei.LayoutManager;
 import codechicken.nei.NEIClientConfig;
+import codechicken.nei.recipe.GuiRecipe;
 import codechicken.nei.recipe.GuiRecipeTab;
 import codechicken.nei.recipe.HandlerInfo;
 import codechicken.nei.recipe.IRecipeHandler;
@@ -89,6 +90,9 @@ public class MixinNEIRecipeHandler {
         // 每页只画一组箭头（挂在第一个配方部件上）。drawExtras 收到的是配方全局索引
         // （482 内部 arecipes.get(该索引)），翻页后不再是 0，须与 widget[0] 的索引比对
         if (!Config.enableArrows) return;
+        // 仅在 NEI 配方页绘制：物品面板悬停配方预览等展示型场景复用同一 drawExtras，
+        // 但没有点击通路（showAsWidget 模式），画箭头无意义
+        if (!(Minecraft.getMinecraft().currentScreen instanceof GuiRecipe)) return;
         GTNEIDefaultHandler handler = (GTNEIDefaultHandler) (Object) this;
         Integer firstIndex = TierState.getPageFirstIndex(handler);
         if (firstIndex != null && aRecipeIndex != firstIndex) return;
@@ -113,7 +117,7 @@ public class MixinNEIRecipeHandler {
         calculator.calculate();
         int overclocks = calculator.getPerformedOverclocks();
 
-        // 配方区右下角：▲/▼ 按钮并排于 NEI 收藏/合成表覆盖按钮列的左侧（动态检测其位置，永不重叠），
+        // 配方区右下角：▲/▼ 横向并排于 NEI 收藏/合成表覆盖按钮列的左侧（动态检测其位置，不重叠），
         // 档位名 (+N OC) 右对齐于按钮上方。NEI 按钮位置复刻 getDefatulButtons 公式：
         // x = min(168, w) - 12、覆盖按钮 y = 内容高 - 18、收藏按钮 y = 覆盖 - 13（内容坐标，yShift 相消）。
         // 按钮风格复刻 LayoutStyleMinecraft.drawButton：LayoutManager.drawButtonBackground 背景 +
@@ -129,12 +133,11 @@ public class MixinNEIRecipeHandler {
         int xDown = neiBtnX - 2 - btnSize;
         int xUp = xDown - 2 - btnSize;
 
-        // 悬停检测：drawScreen 暂存的部件原点（含 yShift）+ LWJGL 鼠标换算内容局部坐标
+        // 悬停检测：updateScreen 暂存的部件原点（含 yShift）+ LWJGL 鼠标换算内容局部坐标；
+        // 禁用态（已达上限/下限）不显示悬停高亮
         Point anchor = TierState.getWidgetAnchor(handler);
         Rectangle upRect = new Rectangle(xUp, yBtn, btnSize, btnSize);
         Rectangle downRect = new Rectangle(xDown, yBtn, btnSize, btnSize);
-        // 悬停检测：drawScreen 暂存的部件原点（含 yShift）+ LWJGL 鼠标换算内容局部坐标；
-        // 禁用态（已达上限/下限）不显示悬停高亮
         boolean hoverUp = false;
         boolean hoverDown = false;
         if (anchor != null) {
