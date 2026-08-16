@@ -1,0 +1,21 @@
+{
+	"modListVersion": 2,
+	"modList": [{
+		"modid": "gtneioc",
+		"name": "GT NEI Overclock",
+		"description": "GTNH 2.8.4 专用：在 NEI 格雷配方页显示 ▲▼ 箭头，按电压等级切换查看各档 EU/t 与时长（纯客户端）。",
+		"version": "0.1.1",
+		"mcversion": "1.7.10",
+		"url": "",
+		"updateUrl": "",
+		"authorList": ["lelqwq"],
+		"credits": "",
+		"logoFile": "",
+		"screenshots": [],
+		"parent": "",
+		"requiredMods": ["gregtech"],
+		"dependencies": ["gregtech"],
+		"dependants": [],
+		"useDependencyInformation": false
+	}]
+}

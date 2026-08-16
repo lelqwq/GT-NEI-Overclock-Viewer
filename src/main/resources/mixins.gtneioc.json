@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.7.11",
+  "package": "com.lelqwq.gtneioc.mixins",
+  "refmap": "mixins.gtneioc.refmap.json",
+  "target": "@env(DEFAULT)",
+  "compatibilityLevel": "JAVA_8",
+  "client": [
+    "MixinNEIRecipeHandler",
+    "MixinGuiRecipe",
+    "MixinDescriberAccessor"
+  ]
+}

@@ -1,0 +1,17 @@
+/*
+ * 在此添加依赖。支持的配置：
+ *  - api("group:name:version:classifier"): 本 mod 的公开 API 中使用了该依赖的类型。
+ *       对于依赖本 mod 的 mod 而言，编译期与运行期均可用。
+ *  - implementation / compileOnly / compileOnlyApi / runtimeOnly 等，见 GTNH 模板说明。
+ *
+ * 本 mod Mixin gregtech.nei.GTNEIDefaultHandler 与 NEI 的 GuiRecipe，
+ * 编译期需要 GT5U 本体 + NotEnoughItems + CodeChickenCore。
+ * UniMixins 会因 gradle.properties 中 usesMixins = true 被 GTNH 构建脚本自动引入，无需手动声明。
+ */
+dependencies {
+    // GTNH 2.8.4 对应版本（本 mod 只适配 2.8.4；编译 476，实机 482 已验证兼容）
+    api("com.github.GTNewHorizons:GT5-Unofficial:5.09.51.476") { transitive = false }
+    // 版本取自 2.8.4 实机 mods 目录；坐标写法取自 GT5U pom（github group）
+    implementation("com.github.GTNewHorizons:NotEnoughItems:2.8.44-GTNH")
+    implementation("com.github.GTNewHorizons:CodeChickenCore:1.4.10")
+}
