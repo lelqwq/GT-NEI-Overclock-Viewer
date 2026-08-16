@@ -1,4 +1,4 @@
-# GT-NEI-Overclock — 项目备忘录
+# GT-NEI-Overclock-Viewer — 项目备忘录
 
 GTNH 2.8.4 专用客户端 mod：在 NEI 格雷配方页显示 ▲▼ 箭头，按电压等级切换查看各档 EU/t 与时长（高版本 GT 整合包的 NEI 切档功能）。作者 lelqwq。与 gtpoc（完美超频）解耦：装不装 gtpoc 都能用，显示走同一个 OverclockCalculator 语义自动一致。
 
@@ -43,7 +43,7 @@ GT5U 5.09.51.x 的 `GTNEIDefaultHandler.drawDescription()` 每次绘制都从 `o
 
 ## 构建
 
-- `./gradlew spotlessApply` 后 `./gradlew build` → `build/libs/gt-nei-overclock-preview-0.1.3.jar`（显示名 GT NEI Overclock Preview；modid 仍为 gtneioc，配置文件名 gtnEIOc.cfg 不变）
+- `./gradlew spotlessApply` 后 `./gradlew build` → `build/libs/gt-nei-overclock-viewer-0.1.3.jar`（显示名 GT NEI Overclock Viewer；modid 仍为 gtneioc，配置文件名 gtnEIOc.cfg 不变）
 - 依赖：GT5U 5.09.51.476（transitive=false）、NotEnoughItems 2.8.44-GTNH、CodeChickenCore 1.4.10（github group 坐标）
 - 构建坑：GTNH 依赖坐标是 `com.github.GTNewHorizons` 不是 `com.gtnewhorizons`；1.7.10 的 @Mod 没有 `clientSideOnly` 属性
 
@@ -61,3 +61,4 @@ GT5U 5.09.51.x 的 `GTNEIDefaultHandler.drawDescription()` 每次绘制都从 `o
 - 实机 482 兼容性已验证（javap）：CachedDefaultRecipe.mRecipe / GTRecipe.mEUt:I / EUOverclockDescriber(byte,int) 继承链 / GTValues.VN 与编译用的 476 一致
 - 待测点：机器上下文路径（GUI 里点 Recipes 打开）是否正常、无箭头机器（EBF/聚变/蒸汽）页面原样、NEI 选项开关、关页面状态复位、与 gtpoc 同装时显示 ÷4
 - 本地 git 仓库已 init，**未推远程**（用户要求本地先行）
+- ⑪ 2026-08-16 晚：项目文件夹更名 **GT-NEI-Overclock-Viewer**，内部命名全部 preview → viewer（jar 名 gt-nei-overclock-viewer、显示名 GT NEI Overclock Viewer、NAME 常量；modid gtneioc 与配置文件名不变），版本保持 0.1.3，待实机测试后提交
