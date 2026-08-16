@@ -36,6 +36,7 @@ GT5U 5.09.51.x 的 `GTNEIDefaultHandler.drawDescription()` 每次绘制都从 `o
 - **vanilla 成员必须 remap=true + refmap**：`guiLeft/guiTop/initGui/mouseClicked` 等 vanilla 字段/方法运行时是混淆名（mod jar 里为 SRG 名如 `func_73866_w_`），`remap = false` 按字面名找不到 → InvalidMixinException → 类转换失败 → 启动即崩（实测由 AE2Thing preInit 触发 GuiRecipe 类加载时爆炸）。mod 自家成员 dev 名原样保留，remap=false 安全；refmap 由 mixin 注解处理器自动生成（**仅 remap=true 成员产生条目**），构建后务必解包确认 refmap 非空
 - **drawExtras 收到的是配方全局索引**（482 内部 `arecipes.get(该索引)`，多配方页翻页后不再是 0）：箭头绘制时机须与当前页 widget[0] 的 `handlerRef.recipeIndex`（public final）比对，该值由 `updateScreen` 暂存进 TierState；否则第 2 页起不画箭头但旧矩形残留、点击仍生效
 - **禁用按钮不悬停不调档**：悬停高亮须 `canUp/canDown && 命中`；点击侧读 TierState 暂存的可用性（与矩形同步写入），禁用态只吞点击
+- **锚点双路刷新防闪烁**：锚点（含页首索引）除 `updateScreen` 每 tick 刷新外，还要在 `refreshContainer` TAIL（NEI 方法，dev 名，remap=false）即时刷新——翻页点击瞬间 widget 重建，若只靠 tick 刷新会有最多 50ms 窗口箭头缺失 → 闪烁
 - **坐标体系**：drawExtras 在配方区局部坐标（NEI 绘制时 GL 平移过，原点 = widget 位置 + HandlerInfo.yShift，GT 页 yShift=6）；mouseClicked 收到屏幕坐标，命中检测用 `updateScreen` 暂存的同一锚点（含 yShift）换算，保证点击区=显示区
 - 注入有返回值的方法必须用 `CallbackInfoReturnable`（gtpoc 的血泪教训）；本 mod 四个注入目标全是 void，用 `CallbackInfo` 正确
 
@@ -54,7 +55,7 @@ GT5U 5.09.51.x 的 `GTNEIDefaultHandler.drawDescription()` 每次绘制都从 `o
 
 - 实机测试进展（2026-08-16 晚）：① 首测启动崩溃 MixinGuiRecipe vanilla 字段 guiLeft/guiTop（已按方案 B 修复，refmap 生效）；② 二测启动崩溃 MixinNEIRecipeHandler @Shadow 父类字段 arecipes（已改 TierState 暂存传递修复）；③ 三测能进游戏但无箭头——482 物品查找路径 describer 是惰性默认 `EUNoOverclockDescriber`（档位恒 LV），精确类型检查拒绝；已放宽类型判定 + 基础档取 max；④ 四测箭头出现，样式改为 NEI 风格、位置右下角；⑤ 五测用户反馈：与收藏/覆盖按钮重叠、无悬停高亮、点击区比显示区靠上（yShift 未计入）——均已修复（动态检测 NEI 按钮位置、updateScreen 暂存锚点、悬停高亮）
 - ⑥ 用户发现两 bug：多配方页第 2 页起不显示箭头（但旧矩形残留点击仍生效）、最低/最高档禁用态仍高亮且响应点击——已修复（页首索引比对 + 禁用态门槛）；⑦ 更名：jar/显示名改为 **gt-nei-overclock-preview / GT NEI Overclock Preview**（modid gtneioc 不变）
-- **v0.1.2 已构建并本地提交，实机测试通过**（build/libs/gt-nei-overclock-preview-0.1.2.jar）：多配方页翻页箭头正常、禁用态无高亮不响应、按钮不重叠、悬停高亮、点击精确、切档联动均验证 OK
+- **v0.1.2 已构建并本地提交，实机测试通过**（build/libs/gt-nei-overclock-preview-0.1.2.jar）：多配方页翻页箭头正常、禁用态无高亮不响应、按钮不重叠、悬停高亮、点击精确、切档联动均验证 OK；⑧ 翻页闪烁（tick 暂存窗口期）——refreshContainer TAIL 即时刷新修复，实测通过并已提交
 - 实机 482 兼容性已验证（javap）：CachedDefaultRecipe.mRecipe / GTRecipe.mEUt:I / EUOverclockDescriber(byte,int) 继承链 / GTValues.VN 与编译用的 476 一致
 - 待测点：机器上下文路径（GUI 里点 Recipes 打开）是否正常、无箭头机器（EBF/聚变/蒸汽）页面原样、NEI 选项开关、关页面状态复位、与 gtpoc 同装时显示 ÷4
 - 本地 git 仓库已 init，**未推远程**（用户要求本地先行）

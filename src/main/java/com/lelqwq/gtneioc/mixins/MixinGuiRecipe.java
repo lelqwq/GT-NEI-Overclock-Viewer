@@ -59,13 +59,25 @@ public abstract class MixinGuiRecipe {
     }
 
     /**
-     * updateScreen HEAD：暂存配方部件 0 的绘制原点（含 yShift），供悬停与点击对齐使用。
+     * updateScreen HEAD：周期性刷新配方部件 0 的绘制原点（含 yShift），供悬停与点击对齐使用。
      * 用 updateScreen 而非 drawScreen：drawScreen 是 GuiRecipe 未 override 的纯 vanilla
-     * 方法，注解处理器在 NEI jar 里解析不到、refmap 无条目（运行时必崩）；updateScreen
-     * 有 override、每 tick 执行，部件位置变化（翻页/滚动）后最迟 50ms 内刷新。
+     * 方法，注解处理器在 NEI jar 里解析不到、refmap 无条目（运行时必崩）。
      */
     @Inject(method = "updateScreen", at = @At("HEAD"), remap = true)
     private void gtneioc$stashWidgetAnchor(CallbackInfo ci) {
+        this.gtneioc$stashAnchor();
+    }
+
+    /**
+     * refreshContainer TAIL：部件列表重建（翻页/搜索/打开页面）后立即刷新锚点，
+     * 避免等待下一个 tick 的窗口期内箭头闪烁。
+     */
+    @Inject(method = "refreshContainer", at = @At("TAIL"), remap = false)
+    private void gtneioc$restashAnchorOnRefresh(CallbackInfo ci) {
+        this.gtneioc$stashAnchor();
+    }
+
+    private void gtneioc$stashAnchor() {
         if (!Config.enableArrows) return;
         if (this.recipetype < 0 || this.recipetype >= this.currenthandlers.size()) return;
         Object active = this.currenthandlers.get(this.recipetype);
@@ -74,16 +86,15 @@ public abstract class MixinGuiRecipe {
         if (widgets.isEmpty()) return;
         Widget anchor = widgets.get(0);
         if (!(anchor instanceof NEIRecipeWidget)) return;
+        GTNEIDefaultHandler handler = (GTNEIDefaultHandler) active;
         TierState.setWidgetAnchor(
-            (GTNEIDefaultHandler) active,
+            handler,
             new Point(
                 anchor.x,
                 anchor.y + ((NEIRecipeWidget) anchor).getHandlerInfo()
                     .getYShift()));
         // 当前页第一个配方的全局索引（drawExtras 收到的是全局索引，翻页后不再是 0）
-        TierState.setPageFirstIndex(
-            (GTNEIDefaultHandler) active,
-            ((NEIRecipeWidget) anchor).getRecipeHandlerRef().recipeIndex);
+        TierState.setPageFirstIndex(handler, ((NEIRecipeWidget) anchor).getRecipeHandlerRef().recipeIndex);
     }
 
     @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true, remap = true)
