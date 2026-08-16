@@ -80,6 +80,10 @@ public abstract class MixinGuiRecipe {
                 anchor.x,
                 anchor.y + ((NEIRecipeWidget) anchor).getHandlerInfo()
                     .getYShift()));
+        // 当前页第一个配方的全局索引（drawExtras 收到的是全局索引，翻页后不再是 0）
+        TierState.setPageFirstIndex(
+            (GTNEIDefaultHandler) active,
+            ((NEIRecipeWidget) anchor).getRecipeHandlerRef().recipeIndex);
     }
 
     @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true, remap = true)
@@ -101,10 +105,16 @@ public abstract class MixinGuiRecipe {
         down.translate(pos.x, pos.y);
 
         if (up.contains(mousex, mousey)) {
-            TierState.adjustShift(handler, 1);
+            // 禁用态（已到 MAX）只吞点击，不调档
+            if (TierState.isArrowUpEnabled(handler)) {
+                TierState.adjustShift(handler, 1);
+            }
             ci.cancel();
         } else if (down.contains(mousex, mousey)) {
-            TierState.adjustShift(handler, -1);
+            // 禁用态（已在配方原生最低档）只吞点击，不调档
+            if (TierState.isArrowDownEnabled(handler)) {
+                TierState.adjustShift(handler, -1);
+            }
             ci.cancel();
         }
     }

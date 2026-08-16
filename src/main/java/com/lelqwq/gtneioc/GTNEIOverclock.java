@@ -21,7 +21,7 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 public class GTNEIOverclock {
 
     public static final String MODID = "gtneioc";
-    public static final String NAME = "GT NEI Overclock";
+    public static final String NAME = "GT NEI Overclock Preview";
 
     private static Configuration config;
 

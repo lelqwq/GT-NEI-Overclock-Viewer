@@ -86,12 +86,15 @@ public class MixinNEIRecipeHandler {
             this.overclockDescriber = this.gtneioc$scratchDescriber;
             this.gtneioc$scratchDescriber = null;
         }
-        // 每页只画一组箭头（挂在第一个配方部件上），避免多配方页重复绘制
-        if (!Config.enableArrows || aRecipeIndex != 0) return;
+        // 每页只画一组箭头（挂在第一个配方部件上）。drawExtras 收到的是配方全局索引
+        // （482 内部 arecipes.get(该索引)），翻页后不再是 0，须与 widget[0] 的索引比对
+        if (!Config.enableArrows) return;
+        GTNEIDefaultHandler handler = (GTNEIDefaultHandler) (Object) this;
+        Integer firstIndex = TierState.getPageFirstIndex(handler);
+        if (firstIndex != null && aRecipeIndex != firstIndex) return;
         OverclockDescriber describer = this.overclockDescriber;
         if (!gtneioc$isEligibleDescriber(describer)) return;
-        GTNEIDefaultHandler handler = (GTNEIDefaultHandler) (Object) this;
-        // 绘制顺序保证此处读到的是索引 0 的配方（由 drawDescription 暂存）
+        // 绘制顺序保证此处读到的是当前页第一个配方（由 drawDescription 暂存）
         GTRecipe recipe = TierState.getCurrentRecipe(handler);
         if (recipe == null) return;
 
@@ -130,6 +133,8 @@ public class MixinNEIRecipeHandler {
         Point anchor = TierState.getWidgetAnchor(handler);
         Rectangle upRect = new Rectangle(xUp, yBtn, btnSize, btnSize);
         Rectangle downRect = new Rectangle(xDown, yBtn, btnSize, btnSize);
+        // 悬停检测：drawScreen 暂存的部件原点（含 yShift）+ LWJGL 鼠标换算内容局部坐标；
+        // 禁用态（已达上限/下限）不显示悬停高亮
         boolean hoverUp = false;
         boolean hoverDown = false;
         if (anchor != null) {
@@ -137,10 +142,10 @@ public class MixinNEIRecipeHandler {
             ScaledResolution res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
             int localX = Mouse.getX() * res.getScaledWidth() / mc.displayWidth - anchor.x;
             int localY = res.getScaledHeight() - Mouse.getY() * res.getScaledHeight() / mc.displayHeight - 1 - anchor.y;
-            hoverUp = upRect.contains(localX, localY);
-            hoverDown = downRect.contains(localX, localY);
+            hoverUp = canUp && upRect.contains(localX, localY);
+            hoverDown = canDown && downRect.contains(localX, localY);
         }
-        TierState.setArrowRects(handler, upRect, downRect);
+        TierState.setArrowRects(handler, upRect, downRect, canUp, canDown);
 
         String tierText = GTValues.VN[current] + (overclocks > 0 ? " (+" + overclocks + " OC)" : "");
         font.drawStringWithShadow(tierText, neiBtnX - 2 - font.getStringWidth(tierText), yBtn - 4 - 8, 0xFFFFFF);

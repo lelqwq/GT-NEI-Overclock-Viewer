@@ -21,6 +21,12 @@ public final class TierState {
 
     private static final Map<GTNEIDefaultHandler, Rectangle[]> ARROW_RECTS = new WeakHashMap<>();
 
+    /** ▲/▼ 按钮可用性（[0]=▲ [1]=▼，与 ARROW_RECTS 同步写入）。 */
+    private static final Map<GTNEIDefaultHandler, boolean[]> ARROW_ENABLED = new WeakHashMap<>();
+
+    /** 当前页第一个配方的全局索引（NEIRecipeWidget 的 handlerRef.recipeIndex），判断箭头绘制时机。 */
+    private static final Map<GTNEIDefaultHandler, Integer> PAGE_FIRST_INDEX = new WeakHashMap<>();
+
     /**
      * 最近一次 drawDescription 绘制的配方（GTNEIDefaultHandler 的配方列表 arecipes 是
      * NEI 父类字段，@Shadow 不搜父类，故借注入参数在绘制时暂存、drawExtras 时读取）。
@@ -48,6 +54,9 @@ public final class TierState {
         SHIFTS.remove(handler);
         CURRENT_RECIPES.remove(handler);
         WIDGET_ANCHORS.remove(handler);
+        ARROW_RECTS.remove(handler);
+        ARROW_ENABLED.remove(handler);
+        PAGE_FIRST_INDEX.remove(handler);
     }
 
     /** 记录配方部件 0 的绘制原点（屏幕坐标，含 yShift）。 */
@@ -74,13 +83,37 @@ public final class TierState {
         setShift(handler, getShift(handler) + delta);
     }
 
-    /** 记录最近一次绘制的 ▲/▼ 按钮（配方区局部坐标），供点击命中检测。 */
-    public static void setArrowRects(GTNEIDefaultHandler handler, Rectangle up, Rectangle down) {
+    /** 记录最近一次绘制的 ▲/▼ 按钮（配方区局部坐标）与可用性，供点击命中检测。 */
+    public static void setArrowRects(GTNEIDefaultHandler handler, Rectangle up, Rectangle down, boolean upEnabled,
+        boolean downEnabled) {
         ARROW_RECTS.put(handler, new Rectangle[] { up, down });
+        ARROW_ENABLED.put(handler, new boolean[] { upEnabled, downEnabled });
     }
 
     /** @return [▲, ▼] 或 null（该 handler 从未绘制过箭头）。 */
     public static Rectangle[] getArrowRects(GTNEIDefaultHandler handler) {
         return ARROW_RECTS.get(handler);
+    }
+
+    /** @return ▲ 是否可用（档位未到 MAX）。 */
+    public static boolean isArrowUpEnabled(GTNEIDefaultHandler handler) {
+        boolean[] enabled = ARROW_ENABLED.get(handler);
+        return enabled != null && enabled[0];
+    }
+
+    /** @return ▼ 是否可用（档位未到配方原生最低档）。 */
+    public static boolean isArrowDownEnabled(GTNEIDefaultHandler handler) {
+        boolean[] enabled = ARROW_ENABLED.get(handler);
+        return enabled != null && enabled[1];
+    }
+
+    /** 记录当前页第一个配方的全局索引（widget[0].handlerRef.recipeIndex）。 */
+    public static void setPageFirstIndex(GTNEIDefaultHandler handler, int index) {
+        PAGE_FIRST_INDEX.put(handler, index);
+    }
+
+    /** @return 当前页第一个配方的全局索引，可能为 null（未暂存）。 */
+    public static Integer getPageFirstIndex(GTNEIDefaultHandler handler) {
+        return PAGE_FIRST_INDEX.get(handler);
     }
 }
